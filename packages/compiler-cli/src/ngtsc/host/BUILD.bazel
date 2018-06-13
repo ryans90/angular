@@ -3,15 +3,13 @@ package(default_visibility = ["//visibility:public"])
 load("//tools:defaults.bzl", "ts_library")
 
 ts_library(
-    name = "metadata",
+    name = "host",
     srcs = glob([
         "index.ts",
-        "src/*.ts",
+        "src/**/*.ts",
     ]),
-    module_name = "@angular/compiler-cli/src/ngtsc/metadata",
+    module_name = "@angular/compiler-cli/src/ngtsc/host",
     deps = [
-        "//packages:types",
         "//packages/compiler",
-        "//packages/compiler-cli/src/ngtsc/host",
     ],
 )
