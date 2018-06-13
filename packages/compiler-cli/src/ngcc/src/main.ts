@@ -20,12 +20,16 @@ export function mainNgcc(
   // parseMetadataPath(metadataPaths[0]);
   const packageParser = new PackageParser(new Fesm2015PackageAdapter());
   const parsedPackage = packageParser.parseEntryPoint(resolve(rootPath, 'fesm2015'), 'common.js');
+  const analysisOutput = packageParser.analyzeDecorators(parsedPackage);
+  packageParser.transformDecorators(analysisOutput);
 
-  console.error('Components', parsedPackage.components.map(m => m!.classSymbol.escapedName));
-  console.error('Directives', parsedPackage.directives.map(m => m!.classSymbol.escapedName));
-  console.error('Injectables', parsedPackage.injectables.map(m => m!.classSymbol.escapedName));
-  console.error('NgModules', parsedPackage.ngModules.map(m => m!.classSymbol.escapedName));
-  console.error('Pipes', parsedPackage.pipes.map(m => m!.classSymbol.escapedName));
+  // const decoratedClasses = parsedPackage.decoratedClasses;
+  // console.error('Components', decoratedClasses.components.map(m => m!.classSymbol.escapedName));
+  // console.error('Directives', decoratedClasses.directives.map(m => m!.classSymbol.escapedName));
+  // console.error('Injectables', decoratedClasses.injectables.map(m => m!.classSymbol.escapedName));
+  // console.error('NgModules', decoratedClasses.ngModules.map(m => m!.classSymbol.escapedName));
+  // console.error('Pipes', decoratedClasses.pipes.map(m => m!.classSymbol.escapedName));
+
   return 0;
 }
 

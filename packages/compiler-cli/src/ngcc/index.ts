@@ -6,4 +6,4 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-export {mainNgcc} from '../ngcc/src/main';
+export {mainNgcc} from './src/main';
