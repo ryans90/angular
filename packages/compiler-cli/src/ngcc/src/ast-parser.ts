@@ -9,56 +9,81 @@
 import { resolve } from 'path';
 import * as ts from 'typescript';
 
-export function parseEntryPoint(moduleFolder: string, moduleName: string) {
-  const entryPoint = resolve(moduleFolder, moduleName);
-  const options: ts.CompilerOptions = { allowJs: true, rootDir: moduleFolder };
-  const host = ts.createCompilerHost(options);
-  const program = ts.createProgram([entryPoint], options, host);
-  const entryPointFile = program.getSourceFile(entryPoint)!;
-  const typeChecker = program.getTypeChecker();
-  const symbols = typeChecker.getSymbolsInScope(entryPointFile, ts.SymbolFlags.Class & ts.SymbolFlags.Alias);
-  console.error(symbols.map(s => s.escapedName));
-
-  const ngModules = findDecoratorASTs(typeChecker, symbols, 'NgModule');
-  console.error('NgModules', ngModules.map(m => m!.symbol.escapedName));
-
-  const pipes = findDecoratorASTs(typeChecker, symbols, 'Pipe');
-  console.error('Pipes', pipes.map(m => m!.symbol.escapedName));
-
-  const directives = findDecoratorASTs(typeChecker, symbols, 'Directive');
-  console.error('Directives', directives.map(m => m!.symbol.escapedName));
-
-  const components = findDecoratorASTs(typeChecker, symbols, 'Component');
-  console.error('Components', components.map(m => m!.symbol.escapedName));
-
-  const injectables = findDecoratorASTs(typeChecker, symbols, 'Injectable');
-  console.error('Injectables', injectables.map(m => m!.symbol.escapedName));
+export interface DecoratedClass {
+  classSymbol: ts.Symbol;
+  decoratorsProperty: ts.Symbol;
+  decoratorAst: ts.ObjectLiteralExpression;
 }
 
-function findDecoratorASTs(typeChecker: ts.TypeChecker, symbols: ts.Symbol[], decoratorName: string) {
-  return symbols.map(symbol => {
-    if (symbol.exports) {
-      const decorators = symbol.exports.get('decorators' as ts.__String);
-      // Symbol of the identifier for `SomeSymbol.decorators`
-      if (decorators) {
-        const decoratorsIdentifier = decorators.valueDeclaration;
-        if (decoratorsIdentifier) {
-          // AST of the array of decorator values
-          const decoratorsValue = decoratorsIdentifier.parent && (decoratorsIdentifier.parent as any).right;
-          if (decoratorsValue) {
-            const ast = decoratorsValue.elements.find((element: ts.ObjectLiteralExpression) => isDecorator(typeChecker, element, decoratorName));
-            if (ast) {
-              return {
-                symbol,
-                decorators,
-                ast
-              };
+export interface ParsedPackage {
+  packagePath: string;
+  entryPointPath: string;
+  packageProgram: ts.Program;
+  entryPointFile: ts.SourceFile;
+  components: DecoratedClass[];
+  directives: DecoratedClass[];
+  injectables: DecoratedClass[];
+  ngModules: DecoratedClass[];
+  pipes: DecoratedClass[];
+}
+
+
+export class PackageParser {
+  constructor(private packageAdapter: PackageAdapter) {}
+
+  parseEntryPoint(packagePath: string, entryPoint: string): ParsedPackage {
+    const entryPointPath = resolve(packagePath, entryPoint);
+    const options: ts.CompilerOptions = { allowJs: true, rootDir: packagePath };
+    const host = ts.createCompilerHost(options);
+    const packageProgram = ts.createProgram([entryPointPath], options, host);
+    const entryPointFile = packageProgram.getSourceFile(entryPointPath)!;
+    const typeChecker = packageProgram.getTypeChecker();
+
+    return {
+      packagePath,
+      entryPointPath,
+      packageProgram,
+      entryPointFile,
+      ngModules: this.packageAdapter.findDecoratedClasses(typeChecker, entryPointFile, 'NgModule'),
+      pipes: this.packageAdapter.findDecoratedClasses(typeChecker, entryPointFile, 'Pipe'),
+      directives: this.packageAdapter.findDecoratedClasses(typeChecker, entryPointFile, 'Directive'),
+      components: this.packageAdapter.findDecoratedClasses(typeChecker, entryPointFile, 'Component'),
+      injectables: this.packageAdapter.findDecoratedClasses(typeChecker, entryPointFile, 'Injectable'),
+    };
+  }
+}
+
+export interface PackageAdapter {
+  findDecoratedClasses(typeChecker: ts.TypeChecker, entryPointFile: ts.SourceFile, decoratorName: string): DecoratedClass[];
+}
+
+
+
+export class Fesm2015PackageAdapter implements PackageAdapter {
+  findDecoratedClasses(typeChecker: ts.TypeChecker, entryPointFile: ts.SourceFile, decoratorName: string): DecoratedClass[] {
+    const symbols = typeChecker.getSymbolsInScope(entryPointFile, ts.SymbolFlags.Class | ts.SymbolFlags.Alias);
+    const decoratedClasses: DecoratedClass[] = [];
+    symbols.forEach(symbol => {
+      if (symbol.exports) {
+        const decoratorsProperty = symbol.exports.get('decorators' as ts.__String);
+        // Symbol of the identifier for `SomeSymbol.decorators`
+        if (decoratorsProperty) {
+          const decoratorsIdentifier = decoratorsProperty.valueDeclaration;
+          if (decoratorsIdentifier) {
+            // AST of the array of decorator values
+            const decoratorsValue = decoratorsIdentifier.parent && (decoratorsIdentifier.parent as any).right;
+            if (decoratorsValue) {
+              const decoratorAst = decoratorsValue.elements.find((element: ts.ObjectLiteralExpression) => isDecorator(typeChecker, element, decoratorName));
+              if (decoratorAst) {
+                decoratedClasses.push({ classSymbol: symbol, decoratorsProperty, decoratorAst });
+              }
             }
           }
         }
       }
-    }
-  }).filter(x => !!x);
+    });
+    return decoratedClasses;
+  }
 }
 
 function isDecorator(typeChecker: ts.TypeChecker, element: ts.ObjectLiteralExpression, decoratorName: string) {

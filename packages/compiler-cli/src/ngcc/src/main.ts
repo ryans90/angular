@@ -8,7 +8,7 @@
 
 import { resolve } from 'path';
 import { findMetadataPaths } from './metadata-json-parser';
-import { parseEntryPoint } from './ast-parser';
+import { Fesm2015PackageAdapter, PackageParser } from './ast-parser';
 
 export function mainNgcc(
   args: string[],
@@ -18,9 +18,14 @@ export function mainNgcc(
 
   // const metadataPaths = findMetadataPaths(rootPath);
   // parseMetadataPath(metadataPaths[0]);
+  const packageParser = new PackageParser(new Fesm2015PackageAdapter());
+  const parsedPackage = packageParser.parseEntryPoint(resolve(rootPath, 'fesm2015'), 'common.js');
 
-  parseEntryPoint(resolve(rootPath, 'esm2015'), 'common.js');
-
+  console.error('Components', parsedPackage.components.map(m => m!.classSymbol.escapedName));
+  console.error('Directives', parsedPackage.directives.map(m => m!.classSymbol.escapedName));
+  console.error('Injectables', parsedPackage.injectables.map(m => m!.classSymbol.escapedName));
+  console.error('NgModules', parsedPackage.ngModules.map(m => m!.classSymbol.escapedName));
+  console.error('Pipes', parsedPackage.pipes.map(m => m!.classSymbol.escapedName));
   return 0;
 }
 
