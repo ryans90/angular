@@ -1,0 +1,27 @@
+load("//tools:defaults.bzl", "ts_library")
+load("@build_bazel_rules_nodejs//:defs.bzl", "jasmine_node_test")
+
+ts_library(
+    name = "ngcc_lib",
+    testonly = 1,
+    srcs = [
+        "ngcc_spec.ts",
+    ],
+    deps = [
+        "//packages/compiler",
+        "//packages/compiler-cli",
+        "//packages/compiler-cli/test:test_utils",
+    ],
+)
+
+jasmine_node_test(
+    name = "ngcc",
+    bootstrap = ["angular/tools/testing/init_node_no_angular_spec.js"],
+    data = [
+        "//packages/compiler-cli/test/ngcc/fake_core:npm_package",
+    ],
+    deps = [
+        ":ngcc_lib",
+        "//tools/testing:node_no_angular",
+    ],
+)
