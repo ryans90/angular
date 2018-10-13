@@ -3,7 +3,9 @@
   "version": "0.0.0",
   "scripts": {
     "build": "",
-    "test": "node ./check.js"
+    "test": "node ./check.js",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "license": "MIT",
   "dependencies": {
@@ -25,6 +27,8 @@
     "@angular/upgrade": "file:../../dist/packages-dist/upgrade",
     "rxjs": "file:../../node_modules/rxjs",
     "typescript": "file:../../node_modules/typescript",
-    "zone.js": "file:../../node_modules/zone.js"
-  }
+    "zone.js": "file:../../node_modules/zone.js",
+    "snyk": "^1.103.4"
+  },
+  "snyk": true
 }
