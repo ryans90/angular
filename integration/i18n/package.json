@@ -13,7 +13,8 @@
     "google-closure-compiler": "git+https://github.com/alexeagle/closure-compiler.git#packagejson.dist",
     "rxjs": "file:../../node_modules/rxjs",
     "typescript": "file:../../node_modules/typescript",
-    "zone.js": "file:../../node_modules/zone.js"
+    "zone.js": "file:../../node_modules/zone.js",
+    "snyk": "^1.103.4"
   },
   "devDependencies": {
     "@types/jasmine": "2.5.41",
@@ -28,6 +29,9 @@
     "test-locale-folder": "node test-locale-folder.js",
     "serve": "lite-server -c e2e/browser.config.json",
     "preprotractor": "tsc -p e2e",
-    "protractor": "protractor e2e/protractor.config.js"
-  }
+    "protractor": "protractor e2e/protractor.config.js",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
+  },
+  "snyk": true
 }
