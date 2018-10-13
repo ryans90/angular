@@ -17,10 +17,14 @@
     "minimist": "^1.2.0",
     "rxjs": "file:../../node_modules/rxjs",
     "typescript": "file:../../node_modules/typescript",
-    "zone.js": "file:../../node_modules/zone.js"
+    "zone.js": "file:../../node_modules/zone.js",
+    "snyk": "^1.103.4"
   },
   "scripts": {
     "postinstall": "scripts/install.sh",
-    "test": "tsc -p tools && scripts/test.sh"
-  }
+    "test": "tsc -p tools && scripts/test.sh",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
+  },
+  "snyk": true
 }
