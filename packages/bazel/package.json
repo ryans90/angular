@@ -5,11 +5,11 @@
   "author": "angular",
   "license": "MIT",
   "dependencies": {
-    "@bazel/typescript": "^0.15.0",
+    "@bazel/typescript": "^0.27.10",
     "@types/node": "6.0.84",
     "@types/shelljs": "0.7.7",
     "shelljs": "0.7.8",
-    "protobufjs": "5.0.0"
+    "protobufjs": "6.0.0"
   },
   "peerDependencies": {
     "@angular/compiler-cli": "0.0.0-PLACEHOLDER",
